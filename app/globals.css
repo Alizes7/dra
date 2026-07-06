@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Montserrat:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+:root {
+  /* Whites & Ivories */
+  --white:       #FFFFFF;
+  --ivory:       #F8F4EC;
+  --ivory-2:     #F1EBE0;
+  --beige:       #EFE6D8;
+  --beige-2:     #E4D8C8;
+
+  /* Golds */
+  --gold:        #B8893B;
+  --gold-light:  #D4A84B;
+  --gold-deep:   #8E682B;
+  --gold-pale:   #F0E4CC;
+  --gold-border: rgba(184,137,59,0.22);
+  --gold-bg:     rgba(184,137,59,0.06);
+
+  /* Text */
+  --ink:         #1A1714;
+  --ink-2:       #2E2A25;
+  --muted:       #6C665D;
+  --faint:       #9A9087;
+
+  /* Utilities */
+  --radius-card: 2px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--white);
+  color: var(--ink);
+  font-family: 'Montserrat', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.7;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Cormorant Garamond', serif;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+p { text-wrap: pretty; }
+
+::selection { background: rgba(184,137,59,0.18); }
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ivory); }
+::-webkit-scrollbar-thumb { background: rgba(184,137,59,0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ─── Focus ─── */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* ─── Utility classes ─── */
+@layer utilities {
+  .font-serif    { font-family: 'Cormorant Garamond', serif; }
+  .font-sans     { font-family: 'Montserrat', sans-serif; }
+  .font-mono     { font-family: 'IBM Plex Mono', monospace; }
+
+  .text-gold-gradient {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-deep) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-divider {
+    width: 48px; height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+
+  .gold-line-h {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-border), transparent);
+  }
+
+  /* Wave SVG pseudo-divider helper */
+  .wave-top::before {
+    content: '';
+    position: absolute; top: -1px; left: 0; right: 0;
+    height: 80px;
+    background: inherit;
+    clip-path: ellipse(55% 100% at 50% 0%);
+    z-index: 1;
+  }
+}
+
+/* ─── Animations ─── */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 600; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer-gold {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-draw-line  { animation: draw-line 2s ease forwards; }
+
+/* ─── Prefers-reduced-motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Mobile base ─── */
+@media (max-width: 640px) { html { font-size: 15px; } }
