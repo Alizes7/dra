@@ -275,9 +275,9 @@ export default function ContactSection() {
             <motion.div {...vUp(0.38)} className="relative border overflow-hidden" style={{ borderColor: "rgba(184,137,59,0.2)" }}>
               <div className="absolute top-0 left-0 right-0 h-px bg-gold" />
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3656.447706913285!2d-46.69576648447594!3d-23.601448084658!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce5763a80e948d%3A0xad297ab3eccff75f!2sDRC%20Advogados!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3656.080574905925!2d-46.695766423611765!3d-23.601443063067972!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce5763a80e948d%3A0xad297ab3eccff75f!2sDRC%20Advogados!5e0!3m2!1spt-BR!2sbr!4v1783386463738!5m2!1spt-BR!2sbr"
                 width="100%" height="280" style={{ border: 0, filter: "grayscale(100%) contrast(90%)" }}
-                allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"
                 title="Localização DRC Advogados"
                 sandbox="allow-scripts allow-same-origin allow-popups"
               />
