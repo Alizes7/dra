@@ -57,9 +57,6 @@ export default function HeroSection() {
           }}
         />
 
-        {/* Gold corner accent */}
-        <div className="absolute top-8 left-8 w-12 h-12 border-t border-l" style={{ borderColor: "rgba(184,137,59,0.2)" }} />
-        <div className="absolute bottom-8 right-8 w-12 h-12 border-b border-r" style={{ borderColor: "rgba(184,137,59,0.2)" }} />
       </div>
 
       {/* ── Content ── */}

@@ -273,6 +273,62 @@ A DRC Advogados atua tanto como representante de partes em arbitragens nacionais
   },
 ];
 
+
+// Helper: renderiza conteúdo dos artigos sem dependência de markdown lib
+function renderConteudo(texto: string) {
+  const blocos = texto.split(/\n\n+/);
+  return blocos.map((bloco, bi) => {
+    const trimmed = bloco.trim();
+    if (!trimmed) return null;
+
+    // Título de seção: **Texto:**
+    if (trimmed.startsWith("**") && trimmed.endsWith(":**")) {
+      return (
+        <h2 key={bi} className="font-serif text-2xl font-medium text-ink mt-12 mb-5 pb-3 border-b" style={{ borderColor: "rgba(184,137,59,0.18)" }}>
+          {trimmed.replace(/\*\*/g, "")}
+        </h2>
+      );
+    }
+
+    // Lista (começa com •, ✓, número ou -)
+    if (/^[•✓\d\-]/.test(trimmed)) {
+      const lines = trimmed.split("\n").filter(Boolean);
+      return (
+        <ul key={bi} className="space-y-3 my-6">
+          {lines.map((line, li) => {
+            const raw = line.replace(/^[•✓\-]\s*/, "");
+            const parts = raw.split(/(\*\*[^*]+\*\*)/g);
+            return (
+              <li key={li} className="flex items-start gap-3 text-muted text-[16.5px] leading-[1.75]">
+                <span className="mt-[9px] w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0" aria-hidden="true" />
+                <span>
+                  {parts.map((p, pi) =>
+                    p.startsWith("**") && p.endsWith("**")
+                      ? <strong key={pi} className="font-semibold text-ink">{p.replace(/\*\*/g, "")}</strong>
+                      : p
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    }
+
+    // Parágrafo normal com **bold** inline
+    const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+    return (
+      <p key={bi} className="text-[16.5px] text-muted leading-[1.85] mb-6">
+        {parts.map((part, pi) =>
+          part.startsWith("**") && part.endsWith("**")
+            ? <strong key={pi} className="font-semibold text-ink">{part.replace(/\*\*/g, "")}</strong>
+            : part
+        )}
+      </p>
+    );
+  });
+}
+
 export default function ArtigosSection() {
   const [artigoSelecionado, setArtigoSelecionado] = useState<Artigo | null>(null);
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("Todas");
@@ -307,7 +363,7 @@ export default function ArtigosSection() {
   }, []);
 
   return (
-    <section id="artigos" className="relative py-24 md:py-32 bg-ivory overflow-hidden">
+    <section id="artigos" className="relative py-24 md:py-28 overflow-hidden" style={{ backgroundColor: "#F8F4EC" }}>
       {/* Wave top */}
       <div className="absolute top-0 left-0 right-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <svg viewBox="0 0 1440 80" className="w-full" preserveAspectRatio="none">
@@ -373,9 +429,8 @@ export default function ArtigosSection() {
                 aria-label={`Ler artigo: ${artigo.titulo}`}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") abrirArtigo(artigo); }}
               >
-                <div className="relative h-full p-7 bg-white border hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-350 overflow-hidden" style={{ borderColor: "rgba(184,137,59,0.18)" }}>
-                  {/* Top gold bar on hover */}
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gold scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-left" />
+                <div className="relative h-full p-7 bg-white border hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 overflow-hidden" style={{ borderColor: "rgba(184,137,59,0.18)" }}>
+                  <div className="absolute top-0 inset-x-0 h-[2px] bg-gold origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400" />
 
                   {artigo.destaque && (
                     <div className="absolute top-4 right-4 px-2.5 py-1 border border-gold/35 text-gold font-mono text-[9px] tracking-wider uppercase">
@@ -389,11 +444,11 @@ export default function ArtigosSection() {
                   </h3>
                   <p className="text-sm text-muted leading-relaxed mb-6 line-clamp-2">{artigo.resumo}</p>
 
-                  <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t" style={{ borderColor: "rgba(184,137,59,0.12)" }}>
                     <div className="flex items-center gap-2 text-faint text-[11px]">
                       <Calendar className="w-3 h-3" aria-hidden="true" />
                       {artigo.data}
-                      <span className="mx-0.5">·</span>
+                      <span className="mx-0.5 text-gold/30">·</span>
                       <Clock className="w-3 h-3" aria-hidden="true" />
                       {artigo.tempoLeitura}
                     </div>
@@ -414,99 +469,163 @@ export default function ArtigosSection() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ─────────────────────────────────────────────────
+          MODAL DE LEITURA PREMIUM
+          Layout: barra lateral fixa (meta) + coluna de texto larga, central, legível
+      ───────────────────────────────────────────────── */}
       <AnimatePresence>
         {artigoSelecionado && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
             className="fixed inset-0 z-50 overflow-y-auto"
-            style={{ backgroundColor: "rgba(26,23,20,0.7)", backdropFilter: "blur(6px)" }}
+            style={{ backgroundColor: "rgba(26,23,20,0.62)", backdropFilter: "blur(8px)" }}
             onClick={fecharArtigo}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="artigo-modal-titulo"
           >
+            {/* Close button — fixed no canto */}
             <button
               onClick={fecharArtigo}
-              className="fixed top-5 right-5 z-[60] p-2.5 bg-white border border-gold/25 text-muted hover:text-gold hover:border-gold transition-all duration-250 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
-              aria-label="Fechar artigo"
+              className="fixed top-5 right-5 z-[60] w-10 h-10 flex items-center justify-center bg-white border border-gold/20 text-muted hover:text-gold hover:border-gold transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold shadow-gold-sm"
+              aria-label="Fechar artigo (Esc)"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            <motion.article
-              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.22,1,0.36,1] }}
-              className="relative min-h-screen bg-white max-w-4xl mx-auto my-8 shadow-gold-lg"
+            {/* Reading panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="relative min-h-screen bg-white mx-auto max-w-5xl my-10 shadow-[0_24px_80px_rgba(26,23,20,0.22)]"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Gold top bar */}
-              <div className="h-[3px] w-full bg-gold" />
+              {/* ── Cover / Hero do artigo ── */}
+              <div className="relative px-8 sm:px-14 lg:px-20 pt-14 pb-12 overflow-hidden"
+                style={{ background: "linear-gradient(160deg, #F8F4EC 0%, #ffffff 60%)" }}>
+                {/* Gold top bar */}
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-gold-deep via-gold to-gold-light" />
 
-              <div className="pt-14 pb-10 px-7 sm:px-12">
-                <div className="flex flex-wrap items-center gap-3 mb-6">
-                  <span className="px-3 py-1 border border-gold/35 font-mono text-[9px] tracking-wider text-gold uppercase">{artigoSelecionado.categoria}</span>
-                  <span className="flex items-center gap-1.5 text-faint text-xs"><Calendar className="w-3 h-3" />{artigoSelecionado.data}</span>
-                  <span className="flex items-center gap-1.5 text-faint text-xs"><Clock className="w-3 h-3" />{artigoSelecionado.tempoLeitura} de leitura</span>
+                {/* Decorative line */}
+                <div className="absolute top-0 right-0 bottom-0 w-px opacity-50"
+                  style={{ background: "linear-gradient(180deg, rgba(184,137,59,0.3), transparent)" }} />
+
+                {/* Categoria + meta */}
+                <div className="flex flex-wrap items-center gap-3 mb-7">
+                  <span className="inline-flex items-center px-3 py-1.5 border border-gold/35 bg-white font-mono text-[9px] tracking-[0.22em] text-gold uppercase">
+                    {artigoSelecionado.categoria}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted text-xs font-mono">
+                    <Calendar className="w-3 h-3 text-gold/60" />
+                    {artigoSelecionado.data}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-muted text-xs font-mono">
+                    <Clock className="w-3 h-3 text-gold/60" />
+                    {artigoSelecionado.tempoLeitura} de leitura
+                  </span>
                 </div>
 
-                <h1 className="font-serif text-3xl sm:text-4xl md:text-[44px] font-light text-ink leading-[1.1] mb-6">
+                {/* Título */}
+                <h1
+                  id="artigo-modal-titulo"
+                  className="font-serif text-3xl sm:text-4xl lg:text-[46px] font-light text-ink leading-[1.1] mb-8 max-w-3xl"
+                >
                   {artigoSelecionado.titulo}
                 </h1>
 
-                <div className="flex items-center gap-3 pb-8 mb-8 border-b" style={{ borderColor: "rgba(184,137,59,0.15)" }}>
-                  <div className="w-10 h-10 flex items-center justify-center border border-gold/25 bg-gold/5">
+                {/* Linha dourada separadora */}
+                <div className="flex items-center gap-5 mb-7">
+                  <div className="h-px flex-1 max-w-[60px]" style={{ background: "rgba(184,137,59,0.4)" }} />
+                  <div className="h-px flex-1" style={{ background: "rgba(184,137,59,0.12)" }} />
+                </div>
+
+                {/* Autor */}
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 flex items-center justify-center border border-gold/25 bg-white flex-shrink-0">
                     <User className="w-4 h-4 text-gold" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <p className="text-sm text-ink font-medium">{artigoSelecionado.autor}</p>
-                    <p className="font-mono text-[10px] text-muted">DRC Advogados</p>
+                    <p className="font-serif text-base font-medium text-ink">{artigoSelecionado.autor}</p>
+                    <p className="font-mono text-[9px] tracking-wider text-muted uppercase mt-0.5">DRC Advogados</p>
                   </div>
                 </div>
+              </div>
 
-                {/* Highlight resumo */}
-                <div className="p-5 mb-8 bg-ivory border-l-2 border-gold">
-                  <p className="font-serif text-lg text-ink/80 italic leading-relaxed">{artigoSelecionado.resumo}</p>
+              {/* ── Corpo de leitura ── */}
+              <div className="px-8 sm:px-14 lg:px-20 pt-10 pb-14">
+                {/* Resumo em destaque — bloco editorial */}
+                <div className="relative mb-12 pl-6 border-l-2 border-gold">
+                  <p className="font-serif text-xl font-light text-ink/75 leading-[1.65] italic">
+                    {artigoSelecionado.resumo}
+                  </p>
                 </div>
 
-                <div className="text-muted text-[17px] leading-[1.85] whitespace-pre-line mb-10">
-                  {artigoSelecionado.conteudo}
+                {/* Conteúdo processado — renderizado como editorial premium */}
+                <div className="max-w-none">
+                  {renderConteudo(artigoSelecionado.conteudo)}
                 </div>
 
                 {/* Tags */}
-                <div className="pt-8 border-t mb-8" style={{ borderColor: "rgba(184,137,59,0.15)" }}>
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="mt-14 pt-8 border-t" style={{ borderColor: "rgba(184,137,59,0.15)" }}>
+                  <div className="flex items-center gap-3 mb-5">
                     <Tag className="w-3.5 h-3.5 text-gold" strokeWidth={1.5} />
-                    <span className="font-mono text-[9px] tracking-wider text-muted uppercase">Tags</span>
+                    <span className="font-mono text-[9px] tracking-wider text-muted uppercase">Palavras-chave</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {artigoSelecionado.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-1.5 bg-ivory border border-gold/20 font-mono text-[10px] text-muted hover:border-gold/50 hover:text-gold transition-all duration-250 cursor-pointer">{tag}</span>
+                      <span
+                        key={tag}
+                        className="px-3 py-1.5 bg-ivory border border-gold/18 font-mono text-[10px] text-muted hover:border-gold/50 hover:text-gold transition-all duration-200 cursor-pointer"
+                      >
+                        {tag}
+                      </span>
                     ))}
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap gap-3 mb-10">
-                  <button className="flex items-center gap-2 px-4 py-2.5 border border-gold/25 text-muted font-mono text-[10px] tracking-wider uppercase hover:border-gold hover:text-gold transition-all duration-250 cursor-pointer">
+                {/* Ações */}
+                <div className="flex flex-wrap gap-3 mt-8 mb-12">
+                  <button
+                    onClick={() => { if (navigator.share) { navigator.share({ title: artigoSelecionado.titulo, url: window.location.href }); } }}
+                    className="flex items-center gap-2 px-5 py-2.5 border border-gold/25 text-muted font-mono text-[9px] tracking-wider uppercase hover:border-gold hover:text-gold transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+                  >
                     <Share2 className="w-3.5 h-3.5" /> Compartilhar
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2.5 border border-gold/25 text-muted font-mono text-[10px] tracking-wider uppercase hover:border-gold hover:text-gold transition-all duration-250 cursor-pointer">
+                  <button
+                    className="flex items-center gap-2 px-5 py-2.5 border border-gold/25 text-muted font-mono text-[9px] tracking-wider uppercase hover:border-gold hover:text-gold transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+                  >
                     <Bookmark className="w-3.5 h-3.5" /> Salvar
                   </button>
                 </div>
 
-                {/* CTA inline */}
-                <div className="p-7 sm:p-8 bg-ivory border border-gold/20">
-                  <h3 className="font-serif text-2xl font-light text-ink mb-2">Precisa de orientação sobre este tema?</h3>
-                  <p className="text-muted text-sm mb-6">Nossa equipe está pronta para ajudar com soluções jurídicas personalizadas.</p>
+                {/* CTA — fundo marfim com borda dourada */}
+                <div className="relative p-8 sm:p-10 overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, #F8F4EC 0%, #F1EBE0 100%)", border: "1px solid rgba(184,137,59,0.22)" }}>
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+                  <div className="absolute top-4 right-4 w-8 h-8 border-t border-r" style={{ borderColor: "rgba(184,137,59,0.3)" }} />
+                  <p className="font-mono text-[9px] tracking-[0.28em] text-gold uppercase mb-4">Precisa de orientação?</p>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light text-ink mb-3 leading-[1.15]">
+                    Nossos especialistas podem ajudá-lo com este tema.
+                  </h3>
+                  <p className="text-muted text-sm leading-relaxed mb-7 max-w-lg">
+                    Agende uma conversa confidencial com a nossa equipe e receba uma análise personalizada para o seu caso.
+                  </p>
                   <a
-                    href="https://wa.me/5511912252450" target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-gold text-white font-mono text-[10px] tracking-wider uppercase hover:bg-gold-deep transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
+                    href="https://wa.me/5511912252450"
+                    target="_blank" rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-3 px-8 py-4 bg-gold text-white font-mono text-[10px] tracking-[0.18em] uppercase hover:bg-gold-deep transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2"
                   >
-                    Falar com Especialista <ArrowRight className="w-3.5 h-3.5" />
+                    Falar com Especialista
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                   </a>
                 </div>
               </div>
-            </motion.article>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -66,8 +66,6 @@ export default function GoldenBackground({
       )}
 
       {/* Corner accent marks */}
-      <div className="absolute top-8 left-8 w-10 h-10 border-t border-l pointer-events-none" style={{ borderColor: "rgba(184,137,59,0.18)" }} aria-hidden="true" />
-      <div className="absolute bottom-8 right-8 w-10 h-10 border-b border-r pointer-events-none" style={{ borderColor: "rgba(184,137,59,0.18)" }} aria-hidden="true" />
     </>
   );
 }
